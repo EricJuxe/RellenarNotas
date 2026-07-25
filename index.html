@@ -64,7 +64,7 @@
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Venta *</label>
-                        <input type="date" id="fecha" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+                        <input type="date" id="fecha" required onchange="validateDateInput(this)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
                     </div>
 
                     <div>
@@ -152,13 +152,25 @@
         // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
-            // Si no hay fecha seleccionada, poner por defecto el día actual o mantener la última usada
-            if (!document.getElementById('fecha').value) {
-                document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            const todayStr = new Date().toISOString().split('T')[0];
+            const fechaInput = document.getElementById('fecha');
+            fechaInput.max = todayStr;
+            // Si no hay fecha seleccionada o está en el futuro, poner por defecto el día actual
+            if (!fechaInput.value || fechaInput.value > todayStr) {
+                fechaInput.value = todayStr;
             }
             renderTable();
             document.getElementById('piezas').focus();
         });
+
+        // Validación para impedir seleccionar o teclear fechas en el futuro
+        function validateDateInput(input) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            if (input.value > todayStr) {
+                alert('No puedes seleccionar una fecha del futuro (' + formatDate(input.value) + '). Se ha restablecido a la fecha actual.');
+                input.value = todayStr;
+            }
+        }
 
         // Limpieza y formateo de inputs numéricos (Soporta coma española como punto decimal)
         function formatNumberInput(input) {
@@ -189,6 +201,14 @@
         function saveNote(e) {
             e.preventDefault();
             
+            const fechaVal = document.getElementById('fecha').value;
+            const todayStr = new Date().toISOString().split('T')[0];
+            if (fechaVal > todayStr) {
+                alert('No es posible registrar notas de fechas futuras (' + formatDate(fechaVal) + '). La fecha máxima permitida es hoy (' + formatDate(todayStr) + ').');
+                document.getElementById('fecha').focus();
+                return;
+            }
+
             const kilosVal = parseFloat(document.getElementById('kilos').value) || 0;
             const importeVal = parseFloat(document.getElementById('importe').value) || 0;
 
@@ -393,6 +413,8 @@
                     
                     let importedCount = 0;
                     let skippedCount = 0;
+                    let futureCount = 0;
+                    const todayStr = new Date().toISOString().split('T')[0];
 
                     excelData.forEach((row, idx) => {
                         const rawFecha = getRowValue(row, ['Fecha', 'date', 'dia']);
@@ -400,6 +422,12 @@
                         
                         if (rawFecha !== undefined && rawImporte !== undefined) {
                             const fechaStr = parseDate(rawFecha);
+                            
+                            if (fechaStr > todayStr) {
+                                futureCount++;
+                                return;
+                            }
+
                             const kilosVal = parseFloat(getRowValue(row, ['Kilos', 'Kg', 'Peso'])) || 0;
                             const importeVal = parseFloat(rawImporte) || 0;
                             const folioVal = String(getRowValue(row, ['Folio', 'Nota', 'No']) || '-').trim();
@@ -442,9 +470,15 @@
                         if (skippedCount > 0) {
                             msg += `\n(Se omitieron ${skippedCount} notas que ya estaban registradas para evitar duplicados).`;
                         }
+                        if (futureCount > 0) {
+                            msg += `\n(Se bloquearon ${futureCount} notas por tener fecha posterior a hoy).`;
+                        }
                         alert(msg);
-                    } else if (skippedCount > 0) {
-                        alert(`Todas las notas del archivo (${skippedCount}) ya estaban cargadas en el sistema. No se duplicó nada.`);
+                    } else if (skippedCount > 0 || futureCount > 0) {
+                        let msg = '';
+                        if (skippedCount > 0) msg += `Todas las notas válidas (${skippedCount}) ya estaban cargadas en el sistema. `;
+                        if (futureCount > 0) msg += `Se bloquearon ${futureCount} notas por tener fecha en el futuro.`;
+                        alert(msg.trim());
                     } else {
                         alert('No se encontraron notas válidas en el archivo Excel. Verifica que tenga columnas de Fecha e Importe.');
                     }
