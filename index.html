@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura de Notas Históricas - Pollería Juárez</title>
+    <!-- Tailwind para un diseño rápido y limpio -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS para la generación y lectura de Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#af101a',
+                        'primary-container': '#d32f2f',
+                        'on-primary': '#ffffff',
+                        background: '#f9f9f9',
+                        surface: '#ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: theme('colors.background'); }
+    </style>
+</head>
+<body class="text-gray-800 antialiased font-sans">
+    <div class="max-w-6xl mx-auto mt-10">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-primary">Captura Histórica de Notas</h1>
+                <p class="text-gray-600 mt-2">Digitalización de notas de venta para análisis de datos (2020 - Actualidad).</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="clearData()" class="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+                    Borrar Datos Locales
+                </button>
+                <label class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition-colors flex items-center gap-2 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                    Cargar Excel (Continuar)
+                    <input type="file" id="fileUpload" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
+                </label>
+                <button onclick="exportToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-md transition-colors flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Descargar Excel (.xlsx)
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Formulario de Captura -->
+            <div class="lg:col-span-1 bg-surface p-6 rounded-2xl shadow-sm border border-gray-200 h-fit sticky top-10">
+                <h2 class="text-xl font-semibold mb-6 border-b pb-2">Nueva Nota</h2>
+                <form id="noteForm" onsubmit="saveNote(event)" class="space-y-4">
+                    
+
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Venta *</label>
+                        <input type="date" id="fecha" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                    </div>
+
+
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Piezas</label>
+                            <input type="text" inputmode="decimal" id="piezas" placeholder="Ej. 173" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kilos Totales</label>
+                            <input type="text" inputmode="decimal" id="kilos" placeholder="Ej. 613.85" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio Compra ($)</label>
+                            <input type="text" inputmode="decimal" id="precio" placeholder="Ej. 34.50" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Total a Pagar ($) *</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                                <input type="text" inputmode="decimal" id="importe" required placeholder="18109.00" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" class="w-full pl-8 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-lg font-semibold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full mt-6 bg-primary text-white font-bold py-3 px-4 rounded-xl hover:bg-primary-container shadow-md transition-colors">
+                        Guardar Nota (Enter)
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tabla de Datos -->
+            <div class="lg:col-span-2 bg-surface p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold">Notas Capturadas (<span id="totalCount">0</span>)</h2>
+                    <div class="text-sm text-gray-500">Ordenadas automáticamente por fecha</div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-gray-50 text-gray-600 border-y border-gray-200">
+                            <tr>
+                                <th class="py-3 px-4">Fecha</th>
+                                <th class="py-3 px-4">Folio</th>
+                                <th class="py-3 px-4 text-right">Piezas</th>
+                                <th class="py-3 px-4 text-right">Kilos</th>
+                                <th class="py-3 px-4 text-right">Precio</th>
+                                <th class="py-3 px-4 text-right">Total</th>
+                                <th class="py-3 px-4 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-100">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                        <tfoot class="bg-gray-50 border-y border-gray-200 font-semibold">
+                            <tr>
+                                <td colspan="2" class="py-3 px-4 text-right">TOTALES ACUMULADOS:</td>
+                                <td id="sumPiezas" class="py-3 px-4 text-right">0</td>
+                                <td id="sumKilos" class="py-3 px-4 text-right">0.00</td>
+                                <td class="py-3 px-4"></td>
+                                <td id="sumImporte" class="py-3 px-4 text-right text-primary">$0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Array principal en memoria
+        let notas = [];
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            renderTable();
+            // Poner el foco en la fecha para rápido inicio
+            document.getElementById('fecha').focus();
+        });
+
+        // Guardar nota
+        function saveNote(e) {
+            e.preventDefault();
+            
+            // Calcular el siguiente folio de manera segura (evita duplicados si se borraron notas)
+            let maxFolio = 0;
+            notas.forEach(n => {
+                if (n.folio && n.folio.startsWith('HIST-')) {
+                    const num = parseInt(n.folio.replace('HIST-', ''), 10);
+                    if (!isNaN(num) && num > maxFolio) {
+                        maxFolio = num;
+                    }
+                }
+            });
+            
+            const nota = {
+                id: Date.now().toString(),
+                fecha: document.getElementById('fecha').value,
+                folio: 'HIST-' + String(maxFolio + 1).padStart(5, '0'),
+                cliente: 'AARON JUAN JUAREZ MEJIA',
+                piezas: parseFloat(document.getElementById('piezas').value) || 0,
+                kilos: parseFloat(document.getElementById('kilos').value) || 0,
+                precio: parseFloat(document.getElementById('precio').value) || 0,
+                importe: parseFloat(document.getElementById('importe').value) || 0
+            };
+
+            notas.push(nota);
+            
+            // Ordenar por fecha cronológicamente (más antigua a más reciente)
+            notas.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            
+            saveToLocalStorage();
+            renderTable();
+            
+            // Limpiar formulario y enfocar en piezas para un flujo más rápido
+            document.getElementById('piezas').value = '';
+            document.getElementById('kilos').value = '';
+            document.getElementById('precio').value = '';
+            document.getElementById('importe').value = '';
+            document.getElementById('piezas').focus();
+        }
+
+        // Eliminar nota
+        function deleteNote(id) {
+            if(confirm('¿Seguro que deseas eliminar esta nota?')) {
+                notas = notas.filter(n => n.id !== id);
+                saveToLocalStorage();
+                renderTable();
+            }
+        }
+
+        // Renderizar tabla
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let totalPiezas = 0;
+            let totalKilos = 0;
+            let totalImporte = 0;
+
+            if (notas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay notas capturadas aún. Comienza a llenar el formulario.</td></tr>';
+            }
+
+            notas.forEach(nota => {
+                totalPiezas += nota.piezas;
+                totalKilos += nota.kilos;
+                totalImporte += nota.importe;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-gray-900">${formatDate(nota.fecha)}</td>
+                    <td class="py-3 px-4 text-gray-500">${nota.folio}</td>
+                    <td class="py-3 px-4 text-right">${nota.piezas > 0 ? nota.piezas : '-'}</td>
+                    <td class="py-3 px-4 text-right">${nota.kilos > 0 ? nota.kilos.toFixed(2) : '-'}</td>
+                    <td class="py-3 px-4 text-right text-gray-500">${nota.precio > 0 ? '$' + nota.precio.toFixed(2) : '-'}</td>
+                    <td class="py-3 px-4 text-right font-semibold">$${nota.importe.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="deleteNote('${nota.id}')" class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Actualizar resumen
+            document.getElementById('totalCount').innerText = notas.length;
+            document.getElementById('sumPiezas').innerText = totalPiezas;
+            document.getElementById('sumKilos').innerText = totalKilos.toFixed(2);
+            document.getElementById('sumImporte').innerText = '$' + totalImporte.toLocaleString('es-MX', {minimumFractionDigits: 2});
+        }
+
+        // Exportar a Excel
+        function exportToExcel() {
+            if(notas.length === 0) {
+                alert("No hay datos para exportar");
+                return;
+            }
+
+            // Preparar datos para Excel (incluimos ID interno para evitar duplicados en importaciones futuras)
+            const excelData = notas.map(n => ({
+                'ID': n.id,
+                'Fecha': formatDate(n.fecha),
+                'Folio': n.folio,
+                'Cliente': n.cliente,
+                'Piezas': n.piezas,
+                'Kilos': n.kilos,
+                'Precio ($)': n.precio,
+                'Importe ($)': n.importe
+            }));
+
+            // Crear libro de trabajo
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Notas Historicas");
+
+            // Generar y descargar archivo
+            const fileName = `Notas_Historicas_PJ_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // Manejo de LocalStorage para que no se pierdan los datos al recargar la página
+        function saveToLocalStorage() {
+            localStorage.setItem('pj_historico_notas', JSON.stringify(notas));
+        }
+
+        function loadFromLocalStorage() {
+            const data = localStorage.getItem('pj_historico_notas');
+            if (data) {
+                try {
+                    notas = JSON.parse(data);
+                } catch(e) {
+                    notas = [];
+                }
+            }
+        }
+
+        function clearData() {
+            if(confirm('ATENCIÓN: Esto borrará todas las notas capturadas que no hayas exportado. ¿Estás absolutamente seguro?')) {
+                notas = [];
+                saveToLocalStorage();
+                renderTable();
+            }
+        }
+
+        // Importar desde Excel
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    const excelData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    let importedCount = 0;
+                    let skippedCount = 0;
+
+                    excelData.forEach(row => {
+                        if (row['Fecha'] && row['Importe ($)']) {
+                            // Protección contra duplicados exactos usando el ID si existe
+                            // Si no tiene ID (porque lo agregaron a mano en el Excel), creamos un ID predecible (hash)
+                            // basado en fecha, kilos e importe para que no se duplique si suben el mismo archivo 2 veces.
+                            const fallbackHash = 'MANUAL_' + String(row['Fecha']) + '_' + String(row['Kilos']) + '_' + String(row['Importe ($)']);
+                            const rowId = row['ID'] ? String(row['ID']) : fallbackHash.replace(/[^a-zA-Z0-9_]/g, '');
+                            
+                            // Si esta nota ya existe en nuestra memoria, la ignoramos para no duplicar
+                            if (notas.find(n => n.id === rowId)) {
+                                skippedCount++;
+                                return;
+                            }
+
+                            const nota = {
+                                id: rowId,
+                                fecha: parseDate(row['Fecha']),
+                                folio: row['Folio'] || '-',
+                                cliente: row['Cliente'] || 'AARON JUAN JUAREZ MEJIA',
+                                piezas: parseFloat(row['Piezas']) || 0,
+                                kilos: parseFloat(row['Kilos']) || 0,
+                                precio: parseFloat(row['Precio ($)']) || 0,
+                                importe: parseFloat(row['Importe ($)']) || 0
+                            };
+                            notas.push(nota);
+                            importedCount++;
+                        }
+                    });
+
+                    if (importedCount > 0) {
+                        notas.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                        saveToLocalStorage();
+                        renderTable();
+                        let msg = `¡Éxito! Se importaron ${importedCount} notas nuevas del archivo.`;
+                        if (skippedCount > 0) {
+                            msg += `\n(Se omitieron ${skippedCount} notas que ya estaban registradas).`;
+                        }
+                        alert(msg);
+                    } else if (skippedCount > 0) {
+                        alert(`Todas las notas del archivo (${skippedCount}) ya estaban cargadas en el sistema. No se duplicó nada.`);
+                    } else {
+                        alert('No se encontraron notas válidas en el archivo Excel.');
+                    }
+                } catch(error) {
+                    alert('Hubo un error leyendo el archivo Excel. Asegúrate de que no esté corrupto.');
+                    console.error(error);
+                }
+                
+                event.target.value = '';
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Utilidades de Fecha
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return '';
+            if (typeof dateStr === 'string' && dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            }
+            // Soporte por si Excel lo convirtió a número serial de fecha (1900 date system)
+            if (typeof dateStr === 'number') {
+                const date = new Date((dateStr - (25567 + 2)) * 86400 * 1000);
+                const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+                return localDate.toISOString().split('T')[0];
+            }
+            return String(dateStr);
+        }
+    </script>
+</body>
+</html>
