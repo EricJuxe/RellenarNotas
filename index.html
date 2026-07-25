@@ -28,82 +28,87 @@
     </style>
 </head>
 <body class="text-gray-800 antialiased font-sans">
-    <div class="max-w-6xl mx-auto mt-10">
+    <div class="max-w-6xl mx-auto mt-6 mb-16 px-4">
         
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-primary">Captura Histórica de Notas</h1>
-                <p class="text-gray-600 mt-2">Digitalización de notas de venta para análisis de datos (2020 - Actualidad).</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-primary">Captura Histórica de Notas</h1>
+                <p class="text-gray-600 mt-1 text-sm md:text-base">Digitalización de notas de venta para análisis de datos (2020 - Actualidad).</p>
             </div>
-            <div class="flex gap-4">
-                <button onclick="clearData()" class="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+            <div class="flex flex-wrap items-center gap-3">
+                <button onclick="clearData()" class="px-4 py-2 text-sm font-medium border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
                     Borrar Datos Locales
                 </button>
-                <label class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition-colors flex items-center gap-2 cursor-pointer">
+                <label class="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition-colors flex items-center gap-2 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                    Cargar Excel (Continuar)
-                    <input type="file" id="fileUpload" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
+                    <span>Cargar Excel</span>
+                    <input type="file" id="fileUpload" accept=".xlsx, .xls, .csv" class="hidden" onchange="importFromExcel(event)">
                 </label>
-                <button onclick="exportToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-md transition-colors flex items-center gap-2">
+                <button onclick="exportToExcel()" class="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-md transition-colors flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    Descargar Excel (.xlsx)
+                    <span>Descargar Excel</span>
                 </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             <!-- Formulario de Captura -->
-            <div class="lg:col-span-1 bg-surface p-6 rounded-2xl shadow-sm border border-gray-200 h-fit sticky top-10">
-                <h2 class="text-xl font-semibold mb-6 border-b pb-2">Nueva Nota</h2>
+            <div class="lg:col-span-1 bg-surface p-6 rounded-2xl shadow-sm border border-gray-200 static lg:sticky lg:top-6">
+                <div class="flex items-center justify-between mb-6 border-b pb-2">
+                    <h2 class="text-xl font-semibold">Nueva Nota</h2>
+                    <span class="text-xs text-primary font-medium bg-red-50 px-2 py-1 rounded">Autocalculable</span>
+                </div>
                 <form id="noteForm" onsubmit="saveNote(event)" class="space-y-4">
                     
-
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Venta *</label>
-                        <input type="date" id="fecha" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                        <input type="date" id="fecha" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
                     </div>
 
-
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+                        <input type="text" id="cliente" value="AARON JUAN JUAREZ MEJIA" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm uppercase">
+                    </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Piezas</label>
-                            <input type="text" inputmode="decimal" id="piezas" placeholder="Ej. 173" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                            <input type="text" inputmode="decimal" id="piezas" placeholder="Ej. 173" oninput="formatNumberInput(this); autoCalculate('piezas');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Kilos Totales</label>
-                            <input type="text" inputmode="decimal" id="kilos" placeholder="Ej. 613.85" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kilos Totales *</label>
+                            <input type="text" inputmode="decimal" id="kilos" placeholder="Ej. 613.85" oninput="formatNumberInput(this); autoCalculate('kilos');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-semibold">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Precio Compra ($)</label>
-                            <input type="text" inputmode="decimal" id="precio" placeholder="Ej. 34.50" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                            <input type="text" inputmode="decimal" id="precio" placeholder="Ej. 34.50" oninput="formatNumberInput(this); autoCalculate('precio');" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Total a Pagar ($) *</label>
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                                <input type="text" inputmode="decimal" id="importe" required placeholder="18109.00" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" class="w-full pl-8 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-lg font-semibold">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-semibold">$</span>
+                                <input type="text" inputmode="decimal" id="importe" required placeholder="18109.00" oninput="formatNumberInput(this); autoCalculate('importe');" class="w-full pl-8 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-lg font-bold text-primary">
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full mt-6 bg-primary text-white font-bold py-3 px-4 rounded-xl hover:bg-primary-container shadow-md transition-colors">
-                        Guardar Nota (Enter)
+                    <button type="submit" class="w-full mt-6 bg-primary text-white font-bold py-3 px-4 rounded-xl hover:bg-primary-container shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                        <span>Guardar Nota</span>
+                        <span class="text-xs bg-red-800 text-red-100 px-2 py-0.5 rounded font-normal">Enter ↵</span>
                     </button>
                 </form>
             </div>
 
             <!-- Tabla de Datos -->
             <div class="lg:col-span-2 bg-surface p-6 rounded-2xl shadow-sm border border-gray-200">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-semibold">Notas Capturadas (<span id="totalCount">0</span>)</h2>
-                    <div class="text-sm text-gray-500">Ordenadas automáticamente por fecha</div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <h2 class="text-xl font-semibold">Notas Capturadas (<span id="totalCount" class="text-primary font-bold">0</span>)</h2>
+                    <div class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full w-fit">Ordenadas automáticamente por fecha</div>
                 </div>
                 
                 <div class="overflow-x-auto">
@@ -112,23 +117,24 @@
                             <tr>
                                 <th class="py-3 px-4">Fecha</th>
                                 <th class="py-3 px-4">Folio</th>
+                                <th class="py-3 px-4">Cliente</th>
                                 <th class="py-3 px-4 text-right">Piezas</th>
                                 <th class="py-3 px-4 text-right">Kilos</th>
                                 <th class="py-3 px-4 text-right">Precio</th>
-                                <th class="py-3 px-4 text-right">Total</th>
+                                <th class="py-3 px-4 text-right">Total ($)</th>
                                 <th class="py-3 px-4 text-center">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-gray-100">
                             <!-- Filas dinámicas -->
                         </tbody>
-                        <tfoot class="bg-gray-50 border-y border-gray-200 font-semibold">
+                        <tfoot class="bg-gray-50 border-y-2 border-gray-300 font-bold text-gray-800">
                             <tr>
-                                <td colspan="2" class="py-3 px-4 text-right">TOTALES ACUMULADOS:</td>
+                                <td colspan="3" class="py-3 px-4 text-right">TOTALES ACUMULADOS:</td>
                                 <td id="sumPiezas" class="py-3 px-4 text-right">0</td>
-                                <td id="sumKilos" class="py-3 px-4 text-right">0.00</td>
+                                <td id="sumKilos" class="py-3 px-4 text-right">0.00 kg</td>
                                 <td class="py-3 px-4"></td>
-                                <td id="sumImporte" class="py-3 px-4 text-right text-primary">$0.00</td>
+                                <td id="sumImporte" class="py-3 px-4 text-right text-primary text-base">$0.00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -146,35 +152,74 @@
         // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
+            // Si no hay fecha seleccionada, poner por defecto el día actual o mantener la última usada
+            if (!document.getElementById('fecha').value) {
+                document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            }
             renderTable();
-            // Poner el foco en la fecha para rápido inicio
-            document.getElementById('fecha').focus();
+            document.getElementById('piezas').focus();
         });
+
+        // Limpieza y formateo de inputs numéricos (Soporta coma española como punto decimal)
+        function formatNumberInput(input) {
+            let val = input.value.replace(/,/g, '.'); // Convertir coma a punto decimal
+            val = val.replace(/[^0-9.]/g, ''); // Solo números y punto
+            val = val.replace(/(\..*?)\..*/g, '$1'); // Evitar múltiples puntos decimales
+            input.value = val;
+        }
+
+        // Autocalculadora inteligente entre Kilos, Precio e Importe
+        function autoCalculate(changedField) {
+            const kilos = parseFloat(document.getElementById('kilos').value) || 0;
+            const precio = parseFloat(document.getElementById('precio').value) || 0;
+            const importe = parseFloat(document.getElementById('importe').value) || 0;
+
+            if (changedField === 'kilos' || changedField === 'precio') {
+                if (kilos > 0 && precio > 0) {
+                    document.getElementById('importe').value = (kilos * precio).toFixed(2);
+                }
+            } else if (changedField === 'importe') {
+                if (kilos > 0 && importe > 0 && precio === 0) {
+                    document.getElementById('precio').value = (importe / kilos).toFixed(2);
+                }
+            }
+        }
 
         // Guardar nota
         function saveNote(e) {
             e.preventDefault();
             
-            // Calcular el siguiente folio de manera segura (evita duplicados si se borraron notas)
+            const kilosVal = parseFloat(document.getElementById('kilos').value) || 0;
+            const importeVal = parseFloat(document.getElementById('importe').value) || 0;
+
+            if (kilosVal <= 0 && importeVal <= 0) {
+                alert('Por favor ingresa al menos los Kilos o el Importe total de la nota.');
+                return;
+            }
+
+            // Calcular el siguiente folio de manera segura (evita errores con folios numéricos)
             let maxFolio = 0;
             notas.forEach(n => {
-                if (n.folio && n.folio.startsWith('HIST-')) {
-                    const num = parseInt(n.folio.replace('HIST-', ''), 10);
-                    if (!isNaN(num) && num > maxFolio) {
-                        maxFolio = num;
+                if (n && n.folio) {
+                    const folioStr = String(n.folio).trim();
+                    if (folioStr.startsWith('HIST-')) {
+                        const num = parseInt(folioStr.replace('HIST-', ''), 10);
+                        if (!isNaN(num) && num > maxFolio) {
+                            maxFolio = num;
+                        }
                     }
                 }
             });
             
             const nota = {
-                id: Date.now().toString(),
+                id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 7),
                 fecha: document.getElementById('fecha').value,
                 folio: 'HIST-' + String(maxFolio + 1).padStart(5, '0'),
-                cliente: 'AARON JUAN JUAREZ MEJIA',
+                cliente: (document.getElementById('cliente').value || 'AARON JUAN JUAREZ MEJIA').trim().toUpperCase(),
                 piezas: parseFloat(document.getElementById('piezas').value) || 0,
-                kilos: parseFloat(document.getElementById('kilos').value) || 0,
-                precio: parseFloat(document.getElementById('precio').value) || 0,
-                importe: parseFloat(document.getElementById('importe').value) || 0
+                kilos: kilosVal,
+                precio: parseFloat(document.getElementById('precio').value) || (kilosVal > 0 ? parseFloat((importeVal / kilosVal).toFixed(2)) : 0),
+                importe: importeVal
             };
 
             notas.push(nota);
@@ -185,7 +230,7 @@
             saveToLocalStorage();
             renderTable();
             
-            // Limpiar formulario y enfocar en piezas para un flujo más rápido
+            // Limpiar formulario y enfocar en piezas para un flujo continuo
             document.getElementById('piezas').value = '';
             document.getElementById('kilos').value = '';
             document.getElementById('precio').value = '';
@@ -196,13 +241,24 @@
         // Eliminar nota
         function deleteNote(id) {
             if(confirm('¿Seguro que deseas eliminar esta nota?')) {
-                notas = notas.filter(n => n.id !== id);
+                notas = notas.filter(n => String(n.id) !== String(id));
                 saveToLocalStorage();
                 renderTable();
             }
         }
 
-        // Renderizar tabla
+        // Función de seguridad contra XSS para textos en tabla
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '-';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Renderizar tabla con precisión decimal robusta
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
@@ -212,25 +268,26 @@
             let totalImporte = 0;
 
             if (notas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay notas capturadas aún. Comienza a llenar el formulario.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-12 text-gray-500 bg-gray-50/50 rounded-lg">No hay notas capturadas aún. Completa el formulario de la izquierda para comenzar.</td></tr>';
             }
 
             notas.forEach(nota => {
-                totalPiezas += nota.piezas;
-                totalKilos += nota.kilos;
-                totalImporte += nota.importe;
+                totalPiezas += (parseFloat(nota.piezas) || 0);
+                totalKilos += (parseFloat(nota.kilos) || 0);
+                totalImporte += (parseFloat(nota.importe) || 0);
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50 transition-colors';
                 tr.innerHTML = `
-                    <td class="py-3 px-4 font-medium text-gray-900">${formatDate(nota.fecha)}</td>
-                    <td class="py-3 px-4 text-gray-500">${nota.folio}</td>
-                    <td class="py-3 px-4 text-right">${nota.piezas > 0 ? nota.piezas : '-'}</td>
-                    <td class="py-3 px-4 text-right">${nota.kilos > 0 ? nota.kilos.toFixed(2) : '-'}</td>
+                    <td class="py-3 px-4 font-medium text-gray-900">${escapeHtml(formatDate(nota.fecha))}</td>
+                    <td class="py-3 px-4 text-gray-500 font-mono text-xs">${escapeHtml(nota.folio)}</td>
+                    <td class="py-3 px-4 text-gray-700 text-xs truncate max-w-[150px]" title="${escapeHtml(nota.cliente)}">${escapeHtml(nota.cliente)}</td>
+                    <td class="py-3 px-4 text-right">${nota.piezas > 0 ? Number.isInteger(nota.piezas) ? nota.piezas : nota.piezas.toFixed(2) : '-'}</td>
+                    <td class="py-3 px-4 text-right font-medium">${nota.kilos > 0 ? nota.kilos.toFixed(2) : '-'}</td>
                     <td class="py-3 px-4 text-right text-gray-500">${nota.precio > 0 ? '$' + nota.precio.toFixed(2) : '-'}</td>
-                    <td class="py-3 px-4 text-right font-semibold">$${nota.importe.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
+                    <td class="py-3 px-4 text-right font-bold text-gray-900">$${nota.importe.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                     <td class="py-3 px-4 text-center">
-                        <button onclick="deleteNote('${nota.id}')" class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50">
+                        <button onclick="deleteNote('${escapeHtml(nota.id)}')" title="Eliminar nota" class="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                         </button>
                     </td>
@@ -238,11 +295,11 @@
                 tbody.appendChild(tr);
             });
 
-            // Actualizar resumen
+            // Actualizar resumen inferior con redondeo seguro contra errores de coma flotante de JS
             document.getElementById('totalCount').innerText = notas.length;
-            document.getElementById('sumPiezas').innerText = totalPiezas;
-            document.getElementById('sumKilos').innerText = totalKilos.toFixed(2);
-            document.getElementById('sumImporte').innerText = '$' + totalImporte.toLocaleString('es-MX', {minimumFractionDigits: 2});
+            document.getElementById('sumPiezas').innerText = Number.isInteger(totalPiezas) ? totalPiezas : totalPiezas.toFixed(2);
+            document.getElementById('sumKilos').innerText = totalKilos.toFixed(2) + ' kg';
+            document.getElementById('sumImporte').innerText = '$' + totalImporte.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
         // Exportar a Excel
@@ -252,16 +309,17 @@
                 return;
             }
 
-            // Preparar datos para Excel (incluimos ID interno para evitar duplicados en importaciones futuras)
+            // Preparar datos para Excel con formato limpio y compatible para análisis (pandas, Laravel, tablas dinámicas)
             const excelData = notas.map(n => ({
                 'ID': n.id,
-                'Fecha': formatDate(n.fecha),
+                'Fecha': n.fecha || '', // ISO YYYY-MM-DD es estándar universal y ordenable en Excel
+                'Fecha Formateada': formatDate(n.fecha),
                 'Folio': n.folio,
                 'Cliente': n.cliente,
-                'Piezas': n.piezas,
-                'Kilos': n.kilos,
-                'Precio ($)': n.precio,
-                'Importe ($)': n.importe
+                'Piezas': Number(n.piezas) || 0,
+                'Kilos': Number(n.kilos) || 0,
+                'Precio ($)': Number(n.precio) || 0,
+                'Importe ($)': Number(n.importe) || 0
             }));
 
             // Crear libro de trabajo
@@ -274,9 +332,13 @@
             XLSX.writeFile(wb, fileName);
         }
 
-        // Manejo de LocalStorage para que no se pierdan los datos al recargar la página
+        // LocalStorage seguro
         function saveToLocalStorage() {
-            localStorage.setItem('pj_historico_notas', JSON.stringify(notas));
+            try {
+                localStorage.setItem('pj_historico_notas', JSON.stringify(notas));
+            } catch(e) {
+                console.error("Error al guardar en LocalStorage", e);
+            }
         }
 
         function loadFromLocalStorage() {
@@ -284,6 +346,7 @@
             if (data) {
                 try {
                     notas = JSON.parse(data);
+                    if (!Array.isArray(notas)) notas = [];
                 } catch(e) {
                     notas = [];
                 }
@@ -298,7 +361,21 @@
             }
         }
 
-        // Importar desde Excel
+        // Helper para búsqueda flexible de nombres de columna en Excel
+        function getRowValue(row, possibleNames) {
+            const keys = Object.keys(row);
+            for (const key of keys) {
+                const cleanKey = key.trim().toLowerCase();
+                for (const name of possibleNames) {
+                    if (cleanKey === name.toLowerCase() || cleanKey.includes(name.toLowerCase())) {
+                        return row[key];
+                    }
+                }
+            }
+            return undefined;
+        }
+
+        // Importar desde Excel de forma inteligente (resistente a diferencias de columnas y formatos)
         function importFromExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -307,7 +384,7 @@
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
+                    const workbook = XLSX.read(data, {type: 'array', cellDates: true});
                     
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
@@ -317,29 +394,40 @@
                     let importedCount = 0;
                     let skippedCount = 0;
 
-                    excelData.forEach(row => {
-                        if (row['Fecha'] && row['Importe ($)']) {
-                            // Protección contra duplicados exactos usando el ID si existe
-                            // Si no tiene ID (porque lo agregaron a mano en el Excel), creamos un ID predecible (hash)
-                            // basado en fecha, kilos e importe para que no se duplique si suben el mismo archivo 2 veces.
-                            const fallbackHash = 'MANUAL_' + String(row['Fecha']) + '_' + String(row['Kilos']) + '_' + String(row['Importe ($)']);
-                            const rowId = row['ID'] ? String(row['ID']) : fallbackHash.replace(/[^a-zA-Z0-9_]/g, '');
+                    excelData.forEach((row, idx) => {
+                        const rawFecha = getRowValue(row, ['Fecha', 'date', 'dia']);
+                        const rawImporte = getRowValue(row, ['Importe ($)', 'Importe', 'Total', 'monto']);
+                        
+                        if (rawFecha !== undefined && rawImporte !== undefined) {
+                            const fechaStr = parseDate(rawFecha);
+                            const kilosVal = parseFloat(getRowValue(row, ['Kilos', 'Kg', 'Peso'])) || 0;
+                            const importeVal = parseFloat(rawImporte) || 0;
+                            const folioVal = String(getRowValue(row, ['Folio', 'Nota', 'No']) || '-').trim();
                             
-                            // Si esta nota ya existe en nuestra memoria, la ignoramos para no duplicar
-                            if (notas.find(n => n.id === rowId)) {
+                            // Hash de respaldo único si el archivo Excel no tiene columna ID
+                            const fallbackHash = 'MANUAL_' + folioVal + '_' + fechaStr + '_' + kilosVal + '_' + importeVal;
+                            const rowId = row['ID'] ? String(row['ID']).trim() : fallbackHash.replace(/[^a-zA-Z0-9_-]/g, '');
+                            
+                            // Verificar duplicado por ID o por coincidencia exacta de datos
+                            const exists = notas.some(n => {
+                                if (String(n.id) === rowId) return true;
+                                return n.fecha === fechaStr && n.folio === folioVal && n.kilos === kilosVal && n.importe === importeVal && kilosVal > 0;
+                            });
+
+                            if (exists) {
                                 skippedCount++;
                                 return;
                             }
 
                             const nota = {
                                 id: rowId,
-                                fecha: parseDate(row['Fecha']),
-                                folio: row['Folio'] || '-',
-                                cliente: row['Cliente'] || 'AARON JUAN JUAREZ MEJIA',
-                                piezas: parseFloat(row['Piezas']) || 0,
-                                kilos: parseFloat(row['Kilos']) || 0,
-                                precio: parseFloat(row['Precio ($)']) || 0,
-                                importe: parseFloat(row['Importe ($)']) || 0
+                                fecha: fechaStr,
+                                folio: folioVal,
+                                cliente: String(getRowValue(row, ['Cliente', 'Nombre', 'Comprador']) || 'AARON JUAN JUAREZ MEJIA').trim().toUpperCase(),
+                                piezas: parseFloat(getRowValue(row, ['Piezas', 'Pzas', 'Cantidad', 'Cant'])) || 0,
+                                kilos: kilosVal,
+                                precio: parseFloat(getRowValue(row, ['Precio ($)', 'Precio', 'Costo', 'PU', 'P.U.'])) || (kilosVal > 0 ? parseFloat((importeVal / kilosVal).toFixed(2)) : 0),
+                                importe: importeVal
                             };
                             notas.push(nota);
                             importedCount++;
@@ -352,16 +440,16 @@
                         renderTable();
                         let msg = `¡Éxito! Se importaron ${importedCount} notas nuevas del archivo.`;
                         if (skippedCount > 0) {
-                            msg += `\n(Se omitieron ${skippedCount} notas que ya estaban registradas).`;
+                            msg += `\n(Se omitieron ${skippedCount} notas que ya estaban registradas para evitar duplicados).`;
                         }
                         alert(msg);
                     } else if (skippedCount > 0) {
                         alert(`Todas las notas del archivo (${skippedCount}) ya estaban cargadas en el sistema. No se duplicó nada.`);
                     } else {
-                        alert('No se encontraron notas válidas en el archivo Excel.');
+                        alert('No se encontraron notas válidas en el archivo Excel. Verifica que tenga columnas de Fecha e Importe.');
                     }
                 } catch(error) {
-                    alert('Hubo un error leyendo el archivo Excel. Asegúrate de que no esté corrupto.');
+                    alert('Hubo un error procesando el archivo Excel. Asegúrate de que el formato sea válido (.xlsx, .xls o .csv).');
                     console.error(error);
                 }
                 
@@ -371,31 +459,54 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Utilidades de Fecha
+        // Utilidades robustas de Fecha
         function formatDate(dateStr) {
             if (!dateStr) return '';
-            const parts = dateStr.split('-');
+            const parts = String(dateStr).split('-');
             if (parts.length === 3) {
                 return `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
-            return dateStr;
+            return String(dateStr);
         }
 
-        function parseDate(dateStr) {
-            if (!dateStr) return '';
-            if (typeof dateStr === 'string' && dateStr.includes('/')) {
-                const parts = dateStr.split('/');
-                if (parts.length === 3) {
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
+        function parseDate(dateVal) {
+            if (!dateVal) return '';
+            
+            // Si SheetJS devolvió un objeto Date de JavaScript
+            if (dateVal instanceof Date && !isNaN(dateVal)) {
+                return dateVal.toISOString().split('T')[0];
             }
-            // Soporte por si Excel lo convirtió a número serial de fecha (1900 date system)
-            if (typeof dateStr === 'number') {
-                const date = new Date((dateStr - (25567 + 2)) * 86400 * 1000);
+
+            // Si es número serial de fecha de Excel (sistema 1900 con bug de año bisiesto)
+            if (typeof dateVal === 'number') {
+                const date = new Date((dateVal - 25569) * 86400 * 1000);
                 const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
                 return localDate.toISOString().split('T')[0];
             }
-            return String(dateStr);
+
+            const str = String(dateVal).trim();
+            if (str.includes('/')) {
+                const parts = str.split('/');
+                if (parts.length === 3) {
+                    let p0 = parseInt(parts[0], 10);
+                    let p1 = parseInt(parts[1], 10);
+                    let p2 = parts[2];
+
+                    // Determinar si es DD/MM/YYYY o MM/DD/YYYY
+                    if (p0 > 12) {
+                        // Formato DD/MM/YYYY (Estándar México)
+                        return `${p2}-${String(p1).padStart(2, '0')}-${String(p0).padStart(2, '0')}`;
+                    } else if (p1 > 12) {
+                        // Formato MM/DD/YYYY (Estándar USA)
+                        return `${p2}-${String(p0).padStart(2, '0')}-${String(p1).padStart(2, '0')}`;
+                    } else {
+                        // Por defecto asumir DD/MM/YYYY
+                        return `${p2}-${String(p1).padStart(2, '0')}-${String(p0).padStart(2, '0')}`;
+                    }
+                }
+            }
+
+            return str;
         }
     </script>
 </body>
