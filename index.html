@@ -68,8 +68,11 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-                        <input type="text" id="cliente" value="AARON JUAN JUAREZ MEJIA" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm uppercase">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+                        <select id="proveedor" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm">
+                            <option value="La luz">La luz</option>
+                            <option value="El origen">El origen</option>
+                        </select>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -117,7 +120,7 @@
                             <tr>
                                 <th class="py-3 px-4">Fecha</th>
                                 <th class="py-3 px-4">Folio</th>
-                                <th class="py-3 px-4">Cliente</th>
+                                <th class="py-3 px-4">Proveedor</th>
                                 <th class="py-3 px-4 text-right">Piezas</th>
                                 <th class="py-3 px-4 text-right">Kilos</th>
                                 <th class="py-3 px-4 text-right">Precio</th>
@@ -180,6 +183,10 @@
             input.value = val;
         }
 
+        function getProveedorValue(nota) {
+            return String(nota?.proveedor || nota?.cliente || 'La luz').trim();
+        }
+
         // Autocalculadora inteligente entre Kilos, Precio e Importe
         function autoCalculate(changedField) {
             const kilos = parseFloat(document.getElementById('kilos').value) || 0;
@@ -235,7 +242,7 @@
                 id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 7),
                 fecha: document.getElementById('fecha').value,
                 folio: 'HIST-' + String(maxFolio + 1).padStart(5, '0'),
-                cliente: (document.getElementById('cliente').value || 'AARON JUAN JUAREZ MEJIA').trim().toUpperCase(),
+                proveedor: (document.getElementById('proveedor').value || 'La luz').trim(),
                 piezas: parseFloat(document.getElementById('piezas').value) || 0,
                 kilos: kilosVal,
                 precio: parseFloat(document.getElementById('precio').value) || (kilosVal > 0 ? parseFloat((importeVal / kilosVal).toFixed(2)) : 0),
@@ -301,7 +308,7 @@
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-medium text-gray-900">${escapeHtml(formatDate(nota.fecha))}</td>
                     <td class="py-3 px-4 text-gray-500 font-mono text-xs">${escapeHtml(nota.folio)}</td>
-                    <td class="py-3 px-4 text-gray-700 text-xs truncate max-w-[150px]" title="${escapeHtml(nota.cliente)}">${escapeHtml(nota.cliente)}</td>
+                    <td class="py-3 px-4 text-gray-700 text-xs truncate max-w-[150px]" title="${escapeHtml(getProveedorValue(nota))}">${escapeHtml(getProveedorValue(nota))}</td>
                     <td class="py-3 px-4 text-right">${nota.piezas > 0 ? Number.isInteger(nota.piezas) ? nota.piezas : nota.piezas.toFixed(2) : '-'}</td>
                     <td class="py-3 px-4 text-right font-medium">${nota.kilos > 0 ? nota.kilos.toFixed(2) : '-'}</td>
                     <td class="py-3 px-4 text-right text-gray-500">${nota.precio > 0 ? '$' + nota.precio.toFixed(2) : '-'}</td>
@@ -335,7 +342,7 @@
                 'Fecha': n.fecha || '', // ISO YYYY-MM-DD es estándar universal y ordenable en Excel
                 'Fecha Formateada': formatDate(n.fecha),
                 'Folio': n.folio,
-                'Cliente': n.cliente,
+                'Proveedor': getProveedorValue(n),
                 'Piezas': Number(n.piezas) || 0,
                 'Kilos': Number(n.kilos) || 0,
                 'Precio ($)': Number(n.precio) || 0,
@@ -451,7 +458,7 @@
                                 id: rowId,
                                 fecha: fechaStr,
                                 folio: folioVal,
-                                cliente: String(getRowValue(row, ['Cliente', 'Nombre', 'Comprador']) || 'AARON JUAN JUAREZ MEJIA').trim().toUpperCase(),
+                                proveedor: String(getRowValue(row, ['Proveedor', 'Granja', 'Rancho', 'Cliente', 'Nombre', 'Comprador']) || 'La luz').trim(),
                                 piezas: parseFloat(getRowValue(row, ['Piezas', 'Pzas', 'Cantidad', 'Cant'])) || 0,
                                 kilos: kilosVal,
                                 precio: parseFloat(getRowValue(row, ['Precio ($)', 'Precio', 'Costo', 'PU', 'P.U.'])) || (kilosVal > 0 ? parseFloat((importeVal / kilosVal).toFixed(2)) : 0),
